@@ -2,7 +2,7 @@ from z3 import *
 
 SAT_solver = Solver()
 
-rounds_sim = 59
+rounds_sim = 50
 
 def print_sat(model,rounds_sim):
     print(f"The locations the truck has been to: {[model.eval(Truck_Location[i]) for i in range(rounds_sim+1)]}")
@@ -11,13 +11,11 @@ def print_sat(model,rounds_sim):
     print(f"A village food supply {[model.eval(A_fsup[i]) for i in range(rounds_sim+1)]}")
     print(f"B village food supply {[model.eval(B_fsup[i]) for i in range(rounds_sim+1)]}")
     print(f"C village food supply {[model.eval(C_fsup[i]) for i in range(rounds_sim+1)]}")
-    print(f"S village food supply {[model.eval(S_fsup[i]) for i in range(rounds_sim+1)]}")
     
 #Define the amount of food supply for each village
 A_fsup = Array("A_fsup",IntSort(),IntSort())
 B_fsup = Array("B_fsup",IntSort(),IntSort())
 C_fsup = Array("C_fsup",IntSort(),IntSort())
-S_fsup = Array("S_fsup",IntSort(),IntSort())
 
 #Define the capacity of food supply for each non-self-supporting village
 A_cap = 90
@@ -30,7 +28,7 @@ Road_time = Array("Road_time",IntSort(),IntSort())
 
 #Initial conditions
 SAT_solver.add(
-    A_fsup[0] == 60, B_fsup[0] == 60, C_fsup[0] == 60, S_fsup[0] == 60, #Food Supply Initial Conditions
+    A_fsup[0] == 60, B_fsup[0] == 60, C_fsup[0] == 60,#Food Supply Initial Conditions
     Truck_Location[0] == StringVal("S"), Truck_fsup[0] == Truck_cap, Truck_fdrop[0] == 0  #Truck Initial Status
 )
 
@@ -62,7 +60,7 @@ for round_rank in range(1,rounds_sim+1):
                                       False)))))))))),
         #Village food supply cannot go below 0
         A_fsup[round_rank-1] - Road_time[round_rank] > 0, B_fsup[round_rank-1] - Road_time[round_rank] > 0,
-        C_fsup[round_rank-1] - Road_time[round_rank] > 0, S_fsup[round_rank-1] - Road_time[round_rank] > 0,
+        C_fsup[round_rank-1] - Road_time[round_rank] > 0,
         #Simulate for each village
         #For A
         If(A_fsup[round_rank-1] - Road_time[round_rank] + If(next_loc=="A",Truck_fdrop[round_rank],0) <= A_cap,
@@ -77,12 +75,31 @@ for round_rank in range(1,rounds_sim+1):
            C_fsup[round_rank] == C_fsup[round_rank-1] - Road_time[round_rank] + If(next_loc=="C",Truck_fdrop[round_rank],0),
            And(C_fsup[round_rank] == C_cap, Truck_fdrop[round_rank] == C_cap - C_fsup[round_rank-1])),
         #For S
-        #S_fsup[round_rank] == S_fsup[round_rank-1] - Road_time[round_rank] + If(next_loc=="S",Truck_fdrop[round_rank],0),
-        If(next_loc=="S",Truck_fsup[round_rank] == Truck_cap,Truck_fsup[round_rank] == Truck_fsup[round_rank-1] - Truck_fdrop[round_rank]) #Refill Truck Supply
+        If(next_loc=="S",And(Truck_fsup[round_rank] == Truck_cap, Truck_fdrop[round_rank]==0),Truck_fsup[round_rank] == Truck_fsup[round_rank-1] - Truck_fdrop[round_rank]) #Refill Truck Supply
     )
-
+#Section 3.1
+print("<--Section 3.1-->")
 if SAT_solver.check() == sat:
-    sat_model = SAT_solver.model()
-    print_sat(sat_model,rounds_sim)
+   sat_model = SAT_solver.model()
+   print_sat(sat_model,rounds_sim)
 else:
-    print("UNSAT")
+   print("UNSAT")
+print("<--Section 3.1-->")
+#Section 3.2
+#Indefinite schedule constraint
+loop_length = 7
+
+# Add constraints to enforce looping behavior
+SAT_solver.add(
+   Truck_Location[1]!="C"
+)
+for i in range(loop_length, rounds_sim):
+   SAT_solver.add(Truck_Location[i] == Truck_Location[i % loop_length])
+
+print("<--Section 3.2-->")
+if SAT_solver.check() == sat:
+   sat_model = SAT_solver.model()
+   print_sat(sat_model,rounds_sim)
+else:
+   print("UNSAT")
+print("<--Section 3.2-->")

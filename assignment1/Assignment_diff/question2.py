@@ -48,16 +48,16 @@ for i_poster_idx in range(len(Posters)):
         )
 
 #Constraints for section 2.1
-line_2_1 = {"value" : Int("value_2_1"), "axis": String('axis_2_1')}
-SAT_Solver.add(0 < line_2_1["value"], line_2_1["value"] < layout_width)
+line_2_1_val, line_2_1_axis= Int("value1"),Int("axis1")
+SAT_Solver.add(0 < line_2_1_val, line_2_1_val < layout_width,line_2_1_axis == 1)
 
 x_coord_constraints_2_1, y_coord_constraints_2_1 = True, True 
 for poster_idx in range(len(Posters)):
-    x_coord_constraints_2_1 = And(x_coord_constraints_2_1,Not(And(Poster_X_LLCs[poster_idx] < line_2_1["value"], line_2_1["value"] < Poster_X_LLCs[poster_idx]+Posters_Width[poster_idx])))
-    y_coord_constraints_2_1 = And(y_coord_constraints_2_1,Not(And(Poster_Y_LLCs[poster_idx] < line_2_1["value"], line_2_1["value"] < Poster_Y_LLCs[poster_idx]+Posters_Height[poster_idx])))
+    x_coord_constraints_2_1 = And(x_coord_constraints_2_1,Not(And(Poster_X_LLCs[poster_idx] < line_2_1_val, line_2_1_val < Poster_X_LLCs[poster_idx]+Posters_Width[poster_idx])))
+    y_coord_constraints_2_1 = And(y_coord_constraints_2_1,Not(And(Poster_Y_LLCs[poster_idx] < line_2_1_val, line_2_1_val < Poster_Y_LLCs[poster_idx]+Posters_Height[poster_idx])))
 
 SAT_Solver.add(
-    Or(And(x_coord_constraints_2_1,line_2_1["axis"] == StringVal("x")),And(y_coord_constraints_2_1,line_2_1["axis"] == StringVal("y"))),
+    Or(And(x_coord_constraints_2_1,line_2_1_axis==0),And(y_coord_constraints_2_1,line_2_1_axis==1))
 )
 
 print("<--Section2.1-->")
@@ -65,7 +65,7 @@ result = SAT_Solver.check()
 if result == sat:
     sat_model = SAT_Solver.model()
     print_sat(sat_model,Posters_Width,Posters_Height,Poster_X_LLCs,Poster_Y_LLCs)
-    print(f"The value of line is {sat_model.eval(line_2_1['value'])} and axis is {sat_model.eval(line_2_1['axis'])}")
+    print(f"The value of line is {sat_model.eval(line_2_1_val)} and axis is {"x" if sat_model.eval(line_2_1_axis) == 0 else "y"}")
 else:
     print("UNSAT")
 print("<--Section2.1-->")
@@ -73,41 +73,42 @@ print("<--Section2.1-->")
 #Constraints for section 2.2
 SAT_Solver.push()
 SAT_Solver.add(
-    10 <= line_2_1["value"],
-    line_2_1["value"] <= layout_width - 10
+    10 <= line_2_1_val,
+    line_2_1_val <= layout_width - 10
 )
+
 
 print("<--Section2.2-->")
 result = SAT_Solver.check()
 if result == sat:
     sat_model = SAT_Solver.model()
     print_sat(sat_model,Posters_Width,Posters_Height,Poster_X_LLCs,Poster_Y_LLCs)
-    print(f"The value of line is {sat_model.eval(line_2_1['value'])} and axis is {sat_model.eval(line_2_1['axis'])}")
+    print(f"The value of line is {sat_model.eval(line_2_1_val)} and axis is {"x" if sat_model.eval(line_2_1_axis) == 0 else "y"}")
 else:
     print("UNSAT")
 SAT_Solver.pop()
 print("<--Section2.2-->")
 
 #Constraints for section 2.3
-line_2_3 = {"value" : Int("value_2_3"), "axis": String('axis_2_3')}
-SAT_Solver.add(0 < line_2_3["value"], line_2_3["value"] < layout_width)
+line_2_3_val, line_2_3_axis = Int("value2"),Int("axis2")
+SAT_Solver.add(0 < line_2_3_val, line_2_3_val < layout_width)
 
 print("<--Section2.3-->")
 x_coord_constraints_2_3, y_coord_constraints_2_3 = True, True 
 for poster_idx in range(len(Posters)):
-    x_coord_constraints_2_3 = And(x_coord_constraints_2_3,Not(And(Poster_X_LLCs[poster_idx] < line_2_3["value"], line_2_3["value"] < Poster_X_LLCs[poster_idx]+Posters_Width[poster_idx])))
-    y_coord_constraints_2_3 = And(y_coord_constraints_2_3,Not(And(Poster_Y_LLCs[poster_idx] < line_2_3["value"], line_2_3["value"] < Poster_Y_LLCs[poster_idx]+Posters_Height[poster_idx])))
+    x_coord_constraints_2_3 = And(x_coord_constraints_2_3,Not(And(Poster_X_LLCs[poster_idx] < line_2_3_val, line_2_3_val < Poster_X_LLCs[poster_idx]+Posters_Width[poster_idx])))
+    y_coord_constraints_2_3 = And(y_coord_constraints_2_3,Not(And(Poster_Y_LLCs[poster_idx] < line_2_3_val, line_2_3_val < Poster_Y_LLCs[poster_idx]+Posters_Height[poster_idx])))
 
 SAT_Solver.add(
-    Or(And(x_coord_constraints_2_1,y_coord_constraints_2_3,line_2_3["axis"] == StringVal("y")),And(y_coord_constraints_2_1,x_coord_constraints_2_3,line_2_3["axis"] == StringVal("x")))
+    Or(And(x_coord_constraints_2_1,y_coord_constraints_2_3),And(y_coord_constraints_2_1,x_coord_constraints_2_3))
 )
 
 result = SAT_Solver.check()
 if result == sat:
     sat_model = SAT_Solver.model()
     print_sat(sat_model,Posters_Width,Posters_Height,Poster_X_LLCs,Poster_Y_LLCs)
-    print(f"The value of line is {sat_model.eval(line_2_1['value'])} and axis is {sat_model.eval(line_2_1['axis'])}")
-    print(f"The value of line is {sat_model.eval(line_2_3['value'])} and axis is {sat_model.eval(line_2_3['axis'])}")
+    print(f"The value of line is {sat_model.eval(line_2_1_val)} and axis is {"x" if sat_model.eval(line_2_1_axis) == 0 else "y"}")
+    print(f"The value of line is {sat_model.eval(line_2_3_val)} and axis is {"x" if sat_model.eval(line_2_3_axis) == 0 else "y"}")
 else:
     print("UNSAT")
 print("<--Section2.3-->")

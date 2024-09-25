@@ -22,8 +22,7 @@ def draw_layout():
 
     # Number of posters and their dimensions and positions
     num_posters = 11
-    posters = [[4, 5, 20, 4], [6, 4, 15, 16], [21, 5, 0, 10], [6, 9, 6, 15], [6, 8, 0, 16], [6, 10, 24, 0], 
-               [11, 6, 0, 24], [7, 12, 23, 18], [9, 8, 21, 10], [11, 10, 12, 20], [20, 10, 0, 0]]
+    posters = [[4,5,6,0],[6,4,6,5],[21,5,1,19],[6,9,12,0],[6,8,0,1],[10,6,12,24],[11,6,1,24],[12,7,18,0],[8,9,22,20],[10,11,20,8],[20,10,0,9],]
 
     # Loop through the posters, take their dimensions and positions
     for i in range(num_posters):
@@ -60,26 +59,26 @@ def draw_layout():
 
         # Right edge length (just inside the poster, rotated)
         ax.text(poster_x + poster_width - offset, center_y, f'{poster_height}', color='black', fontsize=8, ha='right', va='center', rotation=90,fontdict=dict({"style":"italic"}))
-
+    
     # Drawing a line
     x_start = 0
-    y_start = 10
+    y_start = 19
     x_end = 30
-    y_end = 10
+    y_end = 19
 
     # Drawing the line
-    ax.plot([x_start, x_end], [y_start, y_end], color='red', linewidth=2)
+    ax.plot([x_start, x_end], [y_start, y_end], color='blue', linewidth=2)
 
     # Calculate the center point of the line to place the label
     line_center_x = (x_start + x_end) / 2
     line_center_y = (y_start + y_end) / 2
 
     # Add the line name at the center of the line
-    ax.text(line_center_x, line_center_y, "Line", color='red', fontsize=12, ha='center', va='center', backgroundcolor='white')
-
+    ax.text(line_center_x, line_center_y, "Line", color='darkblue', fontsize=10, ha='center', va='center', backgroundcolor='white')
+    
     # Display the layout with posters and line
     plt.gca().set_aspect('equal', adjustable='box')
-    plt.title("Layout with Posters and Edge Lengths Inside")
+    plt.title("Layout with Posters")
     plt.xlabel("Width")
     plt.ylabel("Height")
     plt.show()
