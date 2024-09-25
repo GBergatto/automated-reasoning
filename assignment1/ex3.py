@@ -5,7 +5,7 @@ import time
 start_time = time.time()
 
 # number of deliveries to model
-n_deliveries = 50
+n_deliveries = 25
 
 Location, (S, A, B, C) = z3.EnumSort('Location', ['S', 'A', 'B', 'C'])
 
@@ -73,29 +73,29 @@ for i in range(1, n_deliveries):
 
     # truck can deliver to a village only if it's there
     s.add(
-        z3.If(truck_location[i] == A, packs_delivered_A[i] > 0, packs_delivered_A[i] == 0),
-        z3.If(truck_location[i] == B, packs_delivered_B[i] > 0, packs_delivered_B[i] == 0),
-        z3.If(truck_location[i] == C, packs_delivered_C[i] > 0, packs_delivered_C[i] == 0),
+        z3.If(truck_location[i] == A, packs_delivered_A[i] >= 0, packs_delivered_A[i] == 0),
+        z3.If(truck_location[i] == B, packs_delivered_B[i] >= 0, packs_delivered_B[i] == 0),
+        z3.If(truck_location[i] == C, packs_delivered_C[i] >= 0, packs_delivered_C[i] == 0),
     )
 
     # deliver food or re-load the truck
     s.add(truck_load[i] >= 0)
     s.add(z3.If(truck_location[i] == S,
-                truck_load[i] == truck_capacity,
+                truck_load[i] <= truck_capacity,
                 truck_load[i] == truck_load[i-1] - packs_delivered_A[i] - packs_delivered_B[i] - packs_delivered_C[i]))
+
+    # avoid starvation (before the truck reaches the village)
+    s.add(
+        food_A[i-1] - travel_time[i] > 0,
+        food_B[i-1] - travel_time[i] > 0,
+        food_C[i-1] - travel_time[i] > 0,
+    )
 
     # compute food in each city at the time of the i-th stop
     s.add(
         food_A[i] == food_A[i-1] - travel_time[i] + packs_delivered_A[i],
         food_B[i] == food_B[i-1] - travel_time[i] + packs_delivered_B[i],
         food_C[i] == food_C[i-1] - travel_time[i] + packs_delivered_C[i],
-    )
-
-    # avoid starvation
-    s.add(
-        food_A[i] > 0,
-        food_B[i] > 0,
-        food_C[i] > 0,
     )
 
     # avoid exceeding capacity
