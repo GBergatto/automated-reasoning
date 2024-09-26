@@ -5,7 +5,7 @@ import time
 start_time = time.time()
 
 # number of deliveries to model
-n_deliveries = 17
+n_deliveries = 26
 
 Location, (S, A, B, C) = z3.EnumSort('Location', ['S', 'A', 'B', 'C'])
 
@@ -13,21 +13,17 @@ Location, (S, A, B, C) = z3.EnumSort('Location', ['S', 'A', 'B', 'C'])
 truck_location = [z3.Const(f"truck_location_{i}", Location) for i in range(n_deliveries)]
 # travel time from the previous to the current location
 travel_time = [z3.Int(f"travel_time_{i}") for i in range(n_deliveries)]
-# how much food packs where delivered in each city
+# how many food packs where delivered in each city
 packs_delivered_A = [z3.Int(f"food_delivered_A_{i}") for i in range(n_deliveries)]
 packs_delivered_B = [z3.Int(f"food_delivered_B_{i}") for i in range(n_deliveries)]
 packs_delivered_C = [z3.Int(f"food_delivered_C_{i}") for i in range(n_deliveries)]
-# how much food packs are still on the truck
+# how many food packs are still on the truck
 truck_load = [z3.Int(f"truck_load_{i}") for i in range(n_deliveries)]
 
 # Running counters for food in each village
 food_A = [z3.Int(f"food_A_{i}") for i in range(n_deliveries)]
 food_B = [z3.Int(f"food_B_{i}") for i in range(n_deliveries)]
 food_C = [z3.Int(f"food_C_{i}") for i in range(n_deliveries)]
-
-# Lasso-shaped sequence
-c = z3.Int('c') # after C deliveries, the loop of the lasso starts
-n = z3.Int('n') # lenght of the loop
 
 # Initial food in each city
 initial_food_A = initial_food_B = initial_food_C = 60
@@ -41,21 +37,19 @@ truck_capacity = 150
 
 s = z3.Solver()
 
-# initial conditions
+# Initial conditions
 s.add(truck_load[0] == truck_capacity)
 s.add(truck_location[0] == S)
 s.add(travel_time[0] == 0)
 s.add(packs_delivered_A[0] == 0)
 s.add(packs_delivered_B[0] == 0)
 s.add(packs_delivered_C[0] == 0)
-
-# Initial conditions for food counters
 s.add(food_A[0] == initial_food_A)
 s.add(food_B[0] == initial_food_B)
 s.add(food_C[0] == initial_food_C)
 
 for i in range(1, n_deliveries):
-    # compute time when the truck reaches its destination
+    # Compute travel time from the previous location to the one just reached
     loc_from = truck_location[i-1]
     loc_to = truck_location[i]
     s.add(
