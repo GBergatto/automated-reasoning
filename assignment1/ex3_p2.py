@@ -5,25 +5,25 @@ import time
 start_time = time.time()
 
 # number of deliveries to model
-n_deliveries = 26
+n_stops = 17
 
 Location, (S, A, B, C) = z3.EnumSort('Location', ['S', 'A', 'B', 'C'])
 
 # For each delivery, track where the track has arrived to
-truck_location = [z3.Const(f"truck_location_{i}", Location) for i in range(n_deliveries)]
+truck_location = [z3.Const(f"truck_location_{i}", Location) for i in range(n_stops)]
 # travel time from the previous to the current location
-travel_time = [z3.Int(f"travel_time_{i}") for i in range(n_deliveries)]
+travel_time = [z3.Int(f"travel_time_{i}") for i in range(n_stops)]
 # how many food packs where delivered in each city
-packs_delivered_A = [z3.Int(f"food_delivered_A_{i}") for i in range(n_deliveries)]
-packs_delivered_B = [z3.Int(f"food_delivered_B_{i}") for i in range(n_deliveries)]
-packs_delivered_C = [z3.Int(f"food_delivered_C_{i}") for i in range(n_deliveries)]
+packs_delivered_A = [z3.Int(f"food_delivered_A_{i}") for i in range(n_stops)]
+packs_delivered_B = [z3.Int(f"food_delivered_B_{i}") for i in range(n_stops)]
+packs_delivered_C = [z3.Int(f"food_delivered_C_{i}") for i in range(n_stops)]
 # how many food packs are still on the truck
-truck_load = [z3.Int(f"truck_load_{i}") for i in range(n_deliveries)]
+truck_load = [z3.Int(f"truck_load_{i}") for i in range(n_stops)]
 
 # Running counters for food in each village
-food_A = [z3.Int(f"food_A_{i}") for i in range(n_deliveries)]
-food_B = [z3.Int(f"food_B_{i}") for i in range(n_deliveries)]
-food_C = [z3.Int(f"food_C_{i}") for i in range(n_deliveries)]
+food_A = [z3.Int(f"food_A_{i}") for i in range(n_stops)]
+food_B = [z3.Int(f"food_B_{i}") for i in range(n_stops)]
+food_C = [z3.Int(f"food_C_{i}") for i in range(n_stops)]
 
 # Initial food in each city
 initial_food_A = initial_food_B = initial_food_C = 60
@@ -48,7 +48,7 @@ s.add(food_A[0] == initial_food_A)
 s.add(food_B[0] == initial_food_B)
 s.add(food_C[0] == initial_food_C)
 
-for i in range(1, n_deliveries):
+for i in range(1, n_stops):
     # Compute travel time from the previous location to the one just reached
     loc_from = truck_location[i-1]
     loc_to = truck_location[i]
@@ -100,26 +100,24 @@ for i in range(1, n_deliveries):
       )
 
 # Find the lasso-shaped sequence
-k = z3.Int('k') # stops before the loop
-loop_len = z3.Int('loop_len')
+k = z3.Int('k') # number of stops before the loop starts
+len = z3.Int('len')
 
-s.add(k >= 0, k < n_deliveries)
-s.add(loop_len > 0, loop_len <= n_deliveries - k)
-# do at least 2 loops
-s.add(k + 2*loop_len <= n_deliveries)
+s.add(k >= 0, len > 0)
+s.add(k + 2*len <= n_stops) # do at least 2 loops
 
-for i in range(n_deliveries):
+for i in range(n_stops):
     # truck_load[i] == truck[(i - k) % loop_len]
-    for j in range(n_deliveries):
+    for j in range(n_stops):
         s.add(
             z3.Implies(
-                z3.And(i >= k, j >= k, (i - k) % loop_len == (j - k) % loop_len),
+                z3.And(i >= k, j >= k, j == (i - k) % len + k),
                 z3.And(
-                    truck_load[i] >= truck_load[j],
+                    truck_load[i] == truck_load[j],
                     truck_location[i] == truck_location[j],
-                    food_A[i] >= food_A[j],
-                    food_B[i] >= food_B[j],
-                    food_C[i] >= food_C[j]
+                    food_A[i] == food_A[j],
+                    food_B[i] == food_B[j],
+                    food_C[i] == food_C[j]
                 )
             )
         )
@@ -127,11 +125,12 @@ for i in range(n_deliveries):
 # Run the solver
 if s.check() == z3.sat:
     model = s.model()
-    print(f"K={model[k]}, L={model[loop_len]}")
-    for i in range(n_deliveries):
-        print(f"Delivery {i}:\n\tLocation = {model[truck_location[i]]}, Time travelled = {model[travel_time[i]]}, Truck load = {model[truck_load[i]]}")
-        print(f"\tPacks delivered A={model[packs_delivered_A[i]]}, B={model[packs_delivered_B[i]]}, C={model[packs_delivered_C[i]]},")
-        print(f"\tFood left A={model[food_A[i]]}, B={model[food_B[i]]}, C={model[food_C[i]]},")
+    print(f"K={model[k]}, L={model[len]}")
+    for i in range(n_stops):
+        print(model[truck_location[i]], end=", ")
+        #print(f"Delivery {i}:\n\tLocation = {model[truck_location[i]]}, Time travelled = {model[travel_time[i]]}, Truck load = {model[truck_load[i]]}")
+        #print(f"\tPacks delivered A={model[packs_delivered_A[i]]}, B={model[packs_delivered_B[i]]}, C={model[packs_delivered_C[i]]},")
+        #print(f"\tFood left A={model[food_A[i]]}, B={model[food_B[i]]}, C={model[food_C[i]]},")
 else:
     print("No solution found, starvation will eventually occur.")
 
