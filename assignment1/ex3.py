@@ -5,7 +5,7 @@ import time
 start_time = time.time()
 
 # number of deliveries to model
-n_deliveries = 30
+n_deliveries = 17
 
 Location, (S, A, B, C) = z3.EnumSort('Location', ['S', 'A', 'B', 'C'])
 
@@ -105,27 +105,39 @@ for i in range(1, n_deliveries):
         food_C[i] <= capacity_C,
       )
 
-orr = []
-for i in range(1, n_deliveries):
-    for j in range(1, i):
-        orr.append(z3.And(
-            truck_load[i] == truck_load[j],
-            truck_location[i] == truck_location[j],
-            food_A[i] == food_A[j],
-            food_B[i] == food_B[j],
-            food_C[i] == food_C[j],
-        ))
+# Find the lasso-shaped sequence
+k = z3.Int('k') # stops before the loop
+loop_len = z3.Int('loop_len')
 
-s.add(z3.Or(orr))
+s.add(k >= 0, k < n_deliveries)
+s.add(loop_len > 0, loop_len <= n_deliveries - k)
+# do at least 2 loops
+s.add(k + 2*loop_len <= n_deliveries)
+
+for i in range(n_deliveries):
+    # truck_load[i] == truck[(i - k) % loop_len]
+    for j in range(n_deliveries):
+        s.add(
+            z3.Implies(
+                z3.And(i >= k, j >= k, (i - k) % loop_len == (j - k) % loop_len),
+                z3.And(
+                    truck_load[i] >= truck_load[j],
+                    truck_location[i] == truck_location[j],
+                    food_A[i] >= food_A[j],
+                    food_B[i] >= food_B[j],
+                    food_C[i] >= food_C[j]
+                )
+            )
+        )
 
 # Run the solver
 if s.check() == z3.sat:
     model = s.model()
+    print(f"K={model[k]}, L={model[loop_len]}")
     for i in range(n_deliveries):
-        print(model[truck_location[i]], end=" ")
-        #print(f"Delivery {i}:\n\tLocation = {model[truck_location[i]]}, Time travelled = {model[travel_time[i]]}, Truck load = {model[truck_load[i]]}")
-        #print(f"\tPacks delivered A={model[packs_delivered_A[i]]}, B={model[packs_delivered_B[i]]}, C={model[packs_delivered_C[i]]},")
-        #print(f"\tFood left A={model[food_A[i]]}, B={model[food_B[i]]}, C={model[food_C[i]]},")
+        print(f"Delivery {i}:\n\tLocation = {model[truck_location[i]]}, Time travelled = {model[travel_time[i]]}, Truck load = {model[truck_load[i]]}")
+        print(f"\tPacks delivered A={model[packs_delivered_A[i]]}, B={model[packs_delivered_B[i]]}, C={model[packs_delivered_C[i]]},")
+        print(f"\tFood left A={model[food_A[i]]}, B={model[food_B[i]]}, C={model[food_C[i]]},")
 else:
     print("No solution found, starvation will eventually occur.")
 
