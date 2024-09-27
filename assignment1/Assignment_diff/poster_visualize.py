@@ -22,7 +22,7 @@ def draw_layout():
 
     # Number of posters and their dimensions and positions
     num_posters = 11
-    posters = [[4,5,6,0],[6,4,6,5],[21,5,1,19],[6,9,12,0],[6,8,0,1],[10,6,12,24],[11,6,1,24],[12,7,18,0],[8,9,22,20],[10,11,20,8],[20,10,0,9],]
+    posters = [[4,5,5,10],[4,6,9,9],[5,21,0,9],[6,9,13,0],[8,6,5,15],[6,10,13,9],[6,11,13,19],[12,7,1,1],[8,9,5,21],[11,10,19,0],[10,20,20,10],]
 
     # Loop through the posters, take their dimensions and positions
     for i in range(num_posters):
@@ -61,10 +61,10 @@ def draw_layout():
         ax.text(poster_x + poster_width - offset, center_y, f'{poster_height}', color='black', fontsize=8, ha='right', va='center', rotation=90,fontdict=dict({"style":"italic"}))
     
     # Drawing a line
-    x_start = 0
-    y_start = 19
-    x_end = 30
-    y_end = 19
+    x_start = 13
+    y_start = 0
+    x_end = 13
+    y_end = 30
 
     # Drawing the line
     ax.plot([x_start, x_end], [y_start, y_end], color='blue', linewidth=2)

@@ -2,11 +2,10 @@ from z3 import *
 # Print SAT
 def print_sat(model,Widths,Heights,X_LLCs,Y_LLCs):
     print("SAT condition found:")
-    print("[", end="")
     for i in range(11):
-        #print(f"Poster {i+1}: Width={model.eval(Widths[i])} Height={model.eval(Heights[i])} X-Coordinate of LLC={model.eval(X_LLCs[i])} Y-Coordinate of LLC={model.eval(Y_LLCs[i])} ")
-        print(f"[{model.eval(Widths[i])},{model.eval(Heights[i])},{model.eval(X_LLCs[i])},{model.eval(Y_LLCs[i])}],", end="")
-    print("]")
+        print(f"Poster {i+1}: Width = {model.eval(Widths[i])} Height = {model.eval(Heights[i])} X-Coordinate of LLC = {model.eval(X_LLCs[i])} Y-Coordinate of LLC = {model.eval(Y_LLCs[i])}", end="")
+        print(f" [{model.eval(Widths[i])},{model.eval(Heights[i])},{model.eval(X_LLCs[i])},{model.eval(Y_LLCs[i])}]", end="")
+        print()
 #Define solver
 SAT_Solver = Solver()
 #Define poster size constraints
@@ -49,7 +48,7 @@ for i_poster_idx in range(len(Posters)):
 
 #Constraints for section 2.1
 line_2_1_val, line_2_1_axis= Int("value1"),Int("axis1")
-SAT_Solver.add(0 < line_2_1_val, line_2_1_val < layout_width,line_2_1_axis == 1)
+SAT_Solver.add(0 < line_2_1_val, line_2_1_val < layout_width)
 
 x_coord_constraints_2_1, y_coord_constraints_2_1 = True, True 
 for poster_idx in range(len(Posters)):
