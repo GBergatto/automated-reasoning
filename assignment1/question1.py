@@ -1,3 +1,4 @@
+import time
 import z3
 
 
@@ -94,21 +95,26 @@ objective = z3.Sum(dupples)
 
 solver.maximize(objective)
 print("--- Part 1 ---")
+start_time_1_1 = time.time()
 if solver.check() == z3.sat:
     model = solver.model()
     print_solution(model)
 else:
     print("No solution found.")
-
+end_time_1_1 = time.time()
+print(f">>> Program runtime for section 1.1: {end_time_1_1-start_time_1_1} seconds.", end="")
 # Solution 1.2
 for i in range(num_trucks):
     solver.add(z3.If(crottles[i] > 0, dupples[i]>=2, True))
 
 print("\n--- Part 2 ---")
 solver.maximize(objective)
+start_time_1_2 = time.time()
 if solver.check() == z3.sat:
     model = solver.model()
     print_solution(model)
 else:
     print("No solution found.")
+end_time_1_2 = time.time()
+print(f">>> Program runtime for section 1.2: {end_time_1_2-start_time_1_2} seconds.")
 

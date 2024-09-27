@@ -1,3 +1,4 @@
+import time
 from z3 import *
 # Print SAT
 def print_sat(model,Widths,Heights,X_LLCs,Y_LLCs):
@@ -60,6 +61,7 @@ SAT_Solver.add(
 )
 
 print("<--Section2.1-->")
+start_time_2_1 = time.time()
 result = SAT_Solver.check()
 if result == sat:
     sat_model = SAT_Solver.model()
@@ -67,6 +69,8 @@ if result == sat:
     print(f"The value of line is {sat_model.eval(line_2_1_val)} and axis is {"x" if sat_model.eval(line_2_1_axis) == 0 else "y"}")
 else:
     print("UNSAT")
+end_time_2_1 = time.time()
+print(f">>> Program runtime for section 2.1: {end_time_2_1-start_time_2_1} seconds.")
 print("<--Section2.1-->")
 
 #Constraints for section 2.2
@@ -78,6 +82,7 @@ SAT_Solver.add(
 
 
 print("<--Section2.2-->")
+start_time_2_2 = time.time()
 result = SAT_Solver.check()
 if result == sat:
     sat_model = SAT_Solver.model()
@@ -85,7 +90,9 @@ if result == sat:
     print(f"The value of line is {sat_model.eval(line_2_1_val)} and axis is {"x" if sat_model.eval(line_2_1_axis) == 0 else "y"}")
 else:
     print("UNSAT")
+end_time_2_2 = time.time()
 SAT_Solver.pop()
+print(f">>> Program runtime for section 2.2: {end_time_2_2-start_time_2_2} seconds.")
 print("<--Section2.2-->")
 
 #Constraints for section 2.3
@@ -101,7 +108,7 @@ for poster_idx in range(len(Posters)):
 SAT_Solver.add(
     Or(And(x_coord_constraints_2_1,y_coord_constraints_2_3),And(y_coord_constraints_2_1,x_coord_constraints_2_3))
 )
-
+start_time_2_3 = time.time()
 result = SAT_Solver.check()
 if result == sat:
     sat_model = SAT_Solver.model()
@@ -110,4 +117,6 @@ if result == sat:
     print(f"The value of line is {sat_model.eval(line_2_3_val)} and axis is {"x" if sat_model.eval(line_2_3_axis) == 0 else "y"}")
 else:
     print("UNSAT")
+end_time_2_3 = time.time()
+print(f">>> Program runtime for section 2.3: {end_time_2_3-start_time_2_3} seconds.")
 print("<--Section2.3-->")

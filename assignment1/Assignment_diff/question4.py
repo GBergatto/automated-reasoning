@@ -1,4 +1,5 @@
 from z3 import *
+import time
 
 A_values = Array('A', IntSort(), IntSort()) # values of a 
 B_values = Array('B', IntSort(), IntSort()) # values of b
@@ -14,6 +15,7 @@ for i in range(1,11):
                 ))
 SAT_Solver.add(B_values[10] == 210 + n)
 
+start_time = time.time()
 for n_value in range(1,11):
     SAT_Solver.push()
     SAT_Solver.add(n==n_value)
@@ -35,3 +37,5 @@ for n_value in range(1,11):
         print(f"UNSAT\nValue for n is {n_value}")
     SAT_Solver.pop()
     print("<---------->")
+end_time = time.time()
+print(f">>> Program runtime: {end_time-start_time} seconds.")
